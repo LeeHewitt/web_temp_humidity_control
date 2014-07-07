@@ -1,0 +1,86 @@
+<!DOCTYPE HTML>
+<html>
+  <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js" type="text/javascript" charset="utf-8"></script>
+<body>
+	<P>Prototype. Service is slow! Only click once every 5 seconds please. <br><br>
+    <P>Set Temperature:<br><br>
+    <input type="range" name="TempBox" id="TempBoxId" min="0" max="100" step="1" value="50" list="myData" onchange="sparkSetTemp(this)">
+    <datalist id="myData">
+       <option value="0">
+       <option value="10">
+       <option value="20">
+       <option value="30">
+       <option value="40">
+       <option value="50">
+       <option value="60">
+	   <option value="70">
+       <option value="80">
+       <option value="90">
+       <option value="100">
+    </datalist>
+    <br><br>
+	<P>Set Humidity:<br><br>
+    <input type="range" name="HumBox" id="HumBoxId" min="0" max="100" step="1" value="50" list="myData" onchange="sparkSetHumidity(this)">
+	<br><br>
+    <span id="Temp Setpoint">Waiting for temp...</span><br>
+    <span id="Actual Temperature">Waiting for temp...</span><br>
+	<span id="Humidity Setpoint">Waiting for temp...</span><br>
+    <span id="Actual Humidity">Waiting for temp...</span><br>
+    <script type="text/javascript">
+        var deviceID = ""; //put device id here
+        var accessToken = ""; //put access token here
+		var setTemp = "tempsetting";		
+		var getTempSent = "tempreceived";
+		var actualTemp = "tempreading";
+		var setHum = "rhsetting";
+		var getHumSent = "rhreceived";
+		var actualHum = "rhreading";
+		window.setInterval(function() {  	
+        requestURL = "https://api.spark.io/v1/devices/" + deviceID + "/" + getTempSent + "/?access_token=" + accessToken;
+        $.getJSON(requestURL, function(json) {
+                 document.getElementById("Temp Setpoint").innerHTML = "Temp Setpoint = " + json.result + " C";
+                 document.getElementById("Temp Setpoint").style.fontSize = "28px";				 
+				 document.getElementById("TempBoxId").value = parseInt(json.result);
+                 });
+		}, 5000);
+		window.setInterval(function() {  	
+        requestURL = "https://api.spark.io/v1/devices/" + deviceID + "/" + actualTemp + "/?access_token=" + accessToken;
+        $.getJSON(requestURL, function(json) {
+                 document.getElementById("Actual Temperature").innerHTML = "Actual Temperature = " + json.result.toFixed(2) + " C";
+                 document.getElementById("Actual Temperature").style.fontSize = "28px";
+                 });
+		}, 5000);
+				window.setInterval(function() {  	
+        requestURL = "https://api.spark.io/v1/devices/" + deviceID + "/" + getHumSent + "/?access_token=" + accessToken;
+        $.getJSON(requestURL, function(json) {
+                 document.getElementById("Humidity Setpoint").innerHTML = "Humidity Setpoint = " + json.result + " %";
+                 document.getElementById("Humidity Setpoint").style.fontSize = "28px";
+				 document.getElementById("HumBoxId").value = parseInt(json.result);
+                 });
+		}, 5000);
+		window.setInterval(function() {  	
+        requestURL = "https://api.spark.io/v1/devices/" + deviceID + "/" + actualHum + "/?access_token=" + accessToken;
+        $.getJSON(requestURL, function(json) {
+                 document.getElementById("Actual Humidity").innerHTML = "Actual Humidity = " + json.result.toFixed(2) + " %";
+                 document.getElementById("Actual Humidity").style.fontSize = "28px";
+                 });
+		}, 5000);
+      function sparkSetTemp(newValue) {
+	var requestURL = "https://api.spark.io/v1/devices/" +deviceID + "/" + setTemp + "/";
+        $.post( requestURL, { params: newValue.value, access_token: accessToken });
+      }
+	  function sparkSetHumidity(newValue) {
+	var requestURL = "https://api.spark.io/v1/devices/" +deviceID + "/" + setHum + "/";
+        $.post( requestURL, { params: newValue.value, access_token: accessToken });
+      }
+      function setValue(obj) {
+        var newValue = document.getElementById('TempBoxId').value;
+        sparkSetPos(newValue);
+      }
+	  function setValue(obj) {
+        var newValue = document.getElementById('HumBoxId').value;
+        sparkSetPos(newValue);
+      }
+    </script>
+</body>
+</html>
