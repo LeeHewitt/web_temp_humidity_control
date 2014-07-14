@@ -1,5 +1,6 @@
 double RH, T_C;
 int H_dat, T_dat;
+int RHplot, T_Cplot;
 byte   _status;
 int heatpin = D4;
 int waterpin = D7;
@@ -9,6 +10,7 @@ int tempreceived;
 int rhreceived;
 unsigned long LastUpTime = 0;
 unsigned long lastwatertime = 0;
+char resultstr[64];
 
 void setup() {
     pinMode(heatpin, OUTPUT);
@@ -19,16 +21,9 @@ void setup() {
     Spark.variable("rhreceived", &rhreceived, INT);
     Spark.function("tempsetting", setTemp);
     Spark.function("rhsetting", setRH);
+    Spark.variable("result", &resultstr, STRING); 
     Wire.begin();
-    digitalWrite(waterpin,HIGH);
-    delay(500);
-    digitalWrite(waterpin,LOW);
-    delay(500);
-    digitalWrite(waterpin,HIGH);
-    delay(500);
-    digitalWrite(waterpin,LOW);
     delay(3000);
-
 }
 
 void loop() {
@@ -36,19 +31,25 @@ void loop() {
     _status = fetch_humidity_temperature(&H_dat, &T_dat);
     RH = (float) H_dat * 6.10e-3;
     T_C = (float) T_dat * 1.007e-2 - 40.0;
-    if(RH<rhsetting){
-        if (millis()-lastwatertime>10000){
-        digitalWrite(waterpin,HIGH);
-        delay(500);
-        digitalWrite(waterpin,LOW);
-        lastwatertime = millis();
+
+    if(T_C<tempsetting){
+        digitalWrite(heatpin,HIGH);
+        if(RH<rhsetting){
+            if (millis()-lastwatertime>5000){
+            digitalWrite(waterpin,HIGH);
+            delay(200);
+            digitalWrite(waterpin,LOW);
+            lastwatertime = millis();
+            }
         }
+        else digitalWrite(waterpin,LOW);
     }
-    else digitalWrite(waterpin,LOW);
-    if(T_C<tempsetting)digitalWrite(heatpin,HIGH);
     else digitalWrite(heatpin,LOW);
     tempreceived = tempsetting;
     rhreceived = rhsetting;
+    T_Cplot = (int)T_C;
+    RHplot = (int)RH;
+    sprintf(resultstr, "{\"T_Cplot\":%d,\"RHplot\":%d}", T_Cplot, RHplot); 
    delay(1000);
 }
 
